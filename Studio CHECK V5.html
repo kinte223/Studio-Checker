@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Studio Monitor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+            line-height: 1.5;
+        }
+
+        .container {
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .max-w-7xl { max-width: 1280px; margin: 0 auto; }
+        .max-w-6xl { max-width: 1152px; margin: 0 auto; }
+        .max-w-4xl { max-width: 896px; margin: 0 auto; }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .title {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background: white;
+            color: #374151;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .button:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
+
+        .button-primary {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .button-primary:hover {
+            background: #2563eb;
+        }
+
+        .button-small {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .button-ghost {
+            border: none;
+            background: transparent;
+            padding: 0.25rem;
+        }
+
+        .button-outline {
+            background: transparent;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s;
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+        @media (min-width: 768px) {
+            .md\\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .md\\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        }
+
+        @media (min-width: 1024px) {
+            .lg\\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .lg\\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+
+        .input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .textarea {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            resize: vertical;
+        }
+
+        .label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin: 0.75rem 0;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .hidden { display: none; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-4 { gap: 1rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .p-4 { padding: 1rem; }
+        .text-sm { font-size: 0.875rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-3xl { font-size: 1.875rem; }
+        .font-bold { font-weight: bold; }
+        .font-medium { font-weight: 500; }
+        .font-semibold { font-weight: 600; }
+        .text-gray-600 { color: #4b5563; }
+        .text-gray-900 { color: #111827; }
+        .text-green-600 { color: #16a34a; }
+        .text-yellow-600 { color: #ca8a04; }
+        .text-red-600 { color: #dc2626; }
+        .text-red-800 { color: #991b1b; }
+        .rounded-lg { border-radius: 0.5rem; }
+        .space-y-2 > * + * { margin-top: 0.5rem; }
+        .space-y-3 > * + * { margin-top: 0.75rem; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .w-full { width: 100%; }
+        .w-20 { width: 5rem; }
+        .flex-1 { flex: 1; }
+
+        .status-good {
+            border-color: #bbf7d0;
+            background-color: #f0fdf4;
+        }
+
+        .status-not-checked {
+            border-color: #fef3c7;
+            background-color: #fffbeb;
+        }
+
+        .status-broken {
+            border-color: #fecaca;
+            background-color: #fef2f2;
+        }
+
+        .alert-overdue {
+            border-color: #fecaca;
+            background-color: #fef2f2;
+        }
+
+        .icon {
+            width: 1rem;
+            height: 1rem;
+            display: inline-block;
+        }
+
+        .icon-lg {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .text-center { text-align: center; }
+        .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            position: relative;
+        }
+
+        .stats-number {
+            font-size: 1.875rem;
+            font-weight: bold;
+        }
+
+        .inline-form {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .inline-form input {
+            width: auto;
+            min-width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="max-w-7xl">
+            <div class="header">
+                <h1 class="title">Radio Studio Dashboard</h1>
+                <div class="flex gap-2">
+                    <button class="button" onclick="showStudiosView()">
+                        🏠 Manage Studios
+                    </button>
+                </div>
+            </div>
+
+            <!-- Overdue Checks Alert -->
+            <div id="overdue-alert" class="card alert-overdue" style="display: none;">
+                <div class="card-header">
+                    <h3 class="card-title flex items-center gap-2 text-red-800">
+                        ⏰ <span id="overdue-title">Overdue Checks</span>
+                    </h3>
+                </div>
+                <div class="card-content">
+                    <div id="overdue-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="card">
+                    <div class="card-header" style="padding-bottom: 0.75rem;">
+                        <h3 class="text-sm font-medium text-gray-600">Total Studios</h3>
+                    </div>
+                    <div class="card-content">
+                        <p id="total-studios" class="stats-number">0</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" style="padding-bottom: 0.75rem;">
+                        <h3 class="text-sm font-medium text-gray-600">Studios Operational</h3>
+                    </div>
+                    <div class="card-content">
+                        <p id="studios-operational" class="stats-number text-green-600">0</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" style="padding-bottom: 0.75rem;">
+                        <h3 class="text-sm font-medium text-gray-600">Studios Not Checked</h3>
+                    </div>
+                    <div class="card-content">
+                        <p id="studios-not-checked" class="stats-number text-yellow-600">0</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header" style="padding-bottom: 0.75rem;">
+                        <h3 class="text-sm font-medium text-gray-600">Broken Equipment</h3>
+                    </div>
+                    <div class="card-content">
+                        <p id="broken-equipment" class="stats-number text-red-600">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title flex items-center gap-2">
+                            📊 Studio Status Overview
+                        </h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="chart-container">
+                            <canvas id="status-pie-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Studio Status Breakdown</h3>
+                    </div>
+                    <div class="card-content">
+                        <div class="chart-container">
+                            <canvas id="status-bar-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Studio Cards -->
+            <div id="studio-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- Studios Management View -->
+        <div id="studios-view" class="max-w-6xl hidden">
+            <div class="header">
+                <h1 class="title">Manage Studios</h1>
+                <div class="flex gap-2">
+                    <button class="button button-outline" onclick="showDashboardView()">
+                        🏠 Dashboard
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <button class="button button-primary" onclick="toggleAddStudio()">
+                    ➕ Add Studio
+                </button>
+            </div>
+
+            <!-- Add Studio Form -->
+            <div id="add-studio-form" class="card hidden">
+                <div class="card-header">
+                    <h3 class="card-title">Add New Studio</h3>
+                </div>
+                <div class="card-content">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="label">Studio Name</label>
+                            <input id="new-studio-name" class="input" placeholder="Enter studio name">
+                        </div>
+                        <div>
+                            <label class="label">Description</label>
+                            <input id="new-studio-description" class="input" placeholder="Enter studio description">
+                        </div>
+                        <div>
+                            <label class="label">Check Interval (days)</label>
+                            <input id="new-studio-interval" class="input" type="number" value="7" min="1" max="365">
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="button button-primary" onclick="addStudio()">Add Studio</button>
+                            <button class="button button-outline" onclick="toggleAddStudio()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Studios Grid -->
+            <div id="studios-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+
+        <!-- Equipment Check View -->
+        <div id="equipment-view" class="max-w-4xl hidden">
+            <div class="flex items-center mb-6">
+                <button class="button button-outline flex items-center gap-2" onclick="backToDashboard()" style="margin-right: 1rem;">
+                    ← Back to Dashboard
+                </button>
+                <div>
+                    <h1 id="equipment-studio-name" class="title"></h1>
+                    <p id="equipment-studio-description" class="text-gray-600"></p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Equipment Status Check</h3>
+                    <p class="text-sm text-gray-600" id="equipment-check-info"></p>
+                </div>
+                <div class="card-content">
+                    <div id="equipment-list" class="space-y-4"></div>
+                    <div id="no-equipment" class="text-center py-8 text-gray-600 hidden">
+                        <p>No equipment added to this studio yet.</p>
+                    </div>
+                    <div class="mt-6 flex gap-2">
+                        <button class="button button-primary" onclick="saveEquipmentStatus()">Save All & Return</button>
+                        <button class="button button-outline" onclick="backToDashboard()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        let currentView = 'dashboard';
+        let selectedStudio = null;
+        let editingEquipment = [];
+        let showAddStudioForm = false;
+        let editingStates = {
+            name: null,
+            description: null,
+            interval: null,
+            addEquipment: null
+        };
+
+        let studios = [
+            {
+                id: '1',
+                name: 'Studio A',
+                description: 'Main broadcast studio',
+                equipment: [
+                    { id: '1', name: 'Microphone 1', status: 'good' },
+                    { id: '2', name: 'Mixer Board', status: 'good' },
+                    { id: '3', name: 'Headphones', status: 'broken', notes: 'Left ear not working' }
+                ],
+                checkInterval: 7,
+                lastChecked: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+                id: '2',
+                name: 'Studio B',
+                description: 'Secondary studio for interviews',
+                equipment: [
+                    { id: '4', name: 'Microphone 2', status: 'not-checked' },
+                    { id: '5', name: 'Speakers', status: 'good' }
+                ],
+                checkInterval: 14,
+                lastChecked: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString()
+            },
+            {
+                id: '3',
+                name: 'Studio C',
+                description: 'Recording studio',
+                equipment: [
+                    { id: '6', name: 'Microphone 3', status: 'broken', notes: 'No sound output' },
+                    { id: '7', name: 'Audio Interface', status: 'good' },
+                    { id: '8', name: 'Monitor Speakers', status: 'not-checked' }
+                ],
+                checkInterval: 7,
+                lastChecked: null
+            }
+        ];
+
+        // Utility Functions
+        function getDaysSinceLastCheck(lastChecked) {
+            if (!lastChecked) return null;
+            const last = new Date(lastChecked);
+            const now = new Date();
+            const diffTime = Math.abs(now.getTime() - last.getTime());
+            return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function getCheckStatus(studio) {
+            const daysSince = getDaysSinceLastCheck(studio.lastChecked);
+            if (!daysSince) return { status: 'never', color: 'text-gray-600', days: 0 };
+            if (daysSince >= studio.checkInterval) return { status: 'overdue', color: 'text-red-600', days: daysSince };
+            if (daysSince >= studio.checkInterval * 0.8) return { status: 'due-soon', color: 'text-yellow-600', days: daysSince };
+            return { status: 'ok', color: 'text-green-600', days: daysSince };
+        }
+
+        function getStatusIcon(status) {
+            switch (status) {
+                case 'good': return '✅';
+                case 'not-checked': return '⚠️';
+                case 'broken': return '❌';
+                default: return '❓';
+            }
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'good': return 'status-good';
+                case 'not-checked': return 'status-not-checked';
+                case 'broken': return 'status-broken';
+                default: return '';
+            }
+        }
+
+        // View Management
+        function showDashboardView() {
+            currentView = 'dashboard';
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            document.getElementById('studios-view').classList.add('hidden');
+            document.getElementById('equipment-view').classList.add('hidden');
+            updateDashboard();
+        }
+
+        function showStudiosView() {
+            currentView = 'studios';
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('studios-view').classList.remove('hidden');
+            document.getElementById('equipment-view').classList.add('hidden');
+            updateStudiosView();
+        }
+
+        function showEquipmentView(studioId) {
+            const studio = studios.find(s => s.id === studioId);
+            if (!studio) return;
+            
+            currentView = 'equipment-check';
+            selectedStudio = studio;
+            editingEquipment = JSON.parse(JSON.stringify(studio.equipment));
+            
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('studios-view').classList.add('hidden');
+            document.getElementById('equipment-view').classList.remove('hidden');
+            
+            updateEquipmentView();
+        }
+
+        function backToDashboard() {
+            selectedStudio = null;
+            editingEquipment = [];
+            showDashboardView();
+        }
+
+        // Dashboard Functions
+        function updateDashboard() {
+            updateStats();
+            updateOverdueAlert();
+            updateStudioCards();
+            updateCharts();
+        }
+
+        function updateStats() {
+            const studiosOperational = studios.filter(studio => 
+                studio.equipment.length > 0 && 
+                studio.equipment.every(eq => eq.status === 'good')
+            ).length;
+
+            const studiosNotChecked = studios.filter(studio => 
+                studio.equipment.some(eq => eq.status === 'not-checked')
+            ).length;
+
+            const brokenEquipment = studios.reduce((sum, studio) => 
+                sum + studio.equipment.filter(eq => eq.status === 'broken').length, 0);
+
+            document.getElementById('total-studios').textContent = studios.length;
+            document.getElementById('studios-operational').textContent = studiosOperational;
+            document.getElementById('studios-not-checked').textContent = studiosNotChecked;
+            document.getElementById('broken-equipment').textContent = brokenEquipment;
+        }
+
+        function updateOverdueAlert() {
+            const overdueStudios = studios.filter(studio => {
+                const daysSince = getDaysSinceLastCheck(studio.lastChecked);
+                return daysSince !== null && daysSince >= studio.checkInterval;
+            });
+
+            const alertDiv = document.getElementById('overdue-alert');
+            const overdueList = document.getElementById('overdue-list');
+            const overdueTitle = document.getElementById('overdue-title');
+
+            if (overdueStudios.length > 0) {
+                alertDiv.style.display = 'block';
+                overdueTitle.textContent = `Overdue Checks (${overdueStudios.length})`;
+                
+                overdueList.innerHTML = overdueStudios.map(studio => {
+                    const daysSince = getDaysSinceLastCheck(studio.lastChecked);
+                    return `
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium">${studio.name}</span>
+                            <button class="button button-small" onclick="showEquipmentView('${studio.id}')">
+                                Check Now (${daysSince} days overdue)
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                alertDiv.style.display = 'none';
+            }
+        }
+
+        function updateStudioCards() {
+            const container = document.getElementById('studio-cards');
+            container.innerHTML = studios.map(studio => {
+                const isOperational = studio.equipment.length > 0 && studio.equipment.every(eq => eq.status === 'good');
+                const needsCheck = studio.equipment.some(eq => eq.status === 'not-checked');
+                const hasIssues = studio.equipment.some(eq => eq.status === 'broken');
+                const checkStatus = getCheckStatus(studio);
+                
+                let statusColor = 'text-gray-600';
+                let statusText = 'Empty';
+                
+                if (isOperational) {
+                    statusColor = 'text-green-600';
+                    statusText = 'Operational';
+                } else if (hasIssues) {
+                    statusColor = 'text-red-600';
+                    statusText = 'Has Issues';
+                } else if (needsCheck) {
+                    statusColor = 'text-yellow-600';
+                    statusText = 'Needs Check';
+                }
+
+                return `
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title text-lg">${studio.name}</h3>
+                            <p class="text-sm text-gray-600">${studio.description}</p>
+                        </div>
+                        <div class="card-content">
+                            <div class="space-y-2">
+                                <div class="flex justify-between text-sm">
+                                    <span>Total Equipment:</span>
+                                    <span class="font-semibold">${studio.equipment.length}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>Status:</span>
+                                    <span class="font-semibold ${statusColor}">${statusText}</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>Check Interval:</span>
+                                    <span class="font-semibold">${studio.checkInterval} days</span>
+                                </div>
+                                <div class="flex justify-between text-sm">
+                                    <span>Last Checked:</span>
+                                    <span class="font-semibold ${checkStatus.color}">
+                                        ${checkStatus.status === 'never' ? 'Never' : `${checkStatus.days} days ago`}
+                                    </span>
+                                </div>
+                            </div>
+                            <button class="button button-primary w-full mt-4" onclick="showEquipmentView('${studio.id}')">
+                                Check Equipment
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Chart Functions
+        let statusPieChart = null;
+        let statusBarChart = null;
+
+        function updateCharts() {
+            const studiosOperational = studios.filter(studio => 
+                studio.equipment.length > 0 && 
+                studio.equipment.every(eq => eq.status === 'good')
+            ).length;
+
+            const studiosNotChecked = studios.filter(studio => 
+                studio.equipment.some(eq => eq.status === 'not-checked')
+            ).length;
+
+            const studiosWithIssues = studios.filter(studio => 
+                studio.equipment.some(eq => eq.status === 'broken')
+            ).length;
+
+            // Pie Chart
+            const pieCtx = document.getElementById('status-pie-chart').getContext('2d');
+            if (statusPieChart) statusPieChart.destroy();
+            
+            statusPieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Operational', 'Needs Check', 'Has Issues'],
+                    datasets: [{
+                        data: [studiosOperational, studiosNotChecked, studiosWithIssues],
+                        backgroundColor: ['#22c55e', '#eab308', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Bar Chart
+            const barCtx = document.getElementById('status-bar-chart').getContext('2d');
+            if (statusBarChart) statusBarChart.destroy();
+            
+            const studioDetailData = studios.map(studio => ({
+                name: studio.name,
+                operational: studio.equipment.length > 0 && studio.equipment.every(eq => eq.status === 'good') ? 1 : 0,
+                needsCheck: studio.equipment.some(eq => eq.status === 'not-checked') ? 1 : 0,
+                hasIssues: studio.equipment.some(eq => eq.status === 'broken') ? 1 : 0
+            }));
+
+            statusBarChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: studioDetailData.map(d => d.name),
+                    datasets: [
+                        {
+                            label: 'Operational',
+                            data: studioDetailData.map(d => d.operational),
+                            backgroundColor: '#22c55e'
+                        },
+                        {
+                            label: 'Needs Check',
+                            data: studioDetailData.map(d => d.needsCheck),
+                            backgroundColor: '#eab308'
+                        },
+                        {
+                            label: 'Has Issues',
+                            data: studioDetailData.map(d => d.hasIssues),
+                            backgroundColor: '#ef4444'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true }
+                    }
+                }
+            });
+        }
+
+        // Studio Management Functions
+        function toggleAddStudio() {
+            showAddStudioForm = !showAddStudioForm;
+            const form = document.getElementById('add-studio-form');
+            if (showAddStudioForm) {
+                form.classList.remove('hidden');
+            } else {
+                form.classList.add('hidden');
+                document.getElementById('new-studio-name').value = '';
+                document.getElementById('new-studio-description').value = '';
+                document.getElementById('new-studio-interval').value = '7';
+            }
+        }
+
+        function addStudio() {
+            const name = document.getElementById('new-studio-name').value.trim();
+            const description = document.getElementById('new-studio-description').value.trim();
+            const interval = parseInt(document.getElementById('new-studio-interval').value) || 7;
+
+            if (name) {
+                studios.push({
+                    id: Date.now().toString(),
+                    name: name,
+                    description: description,
+                    equipment: [],
+                    checkInterval: interval,
+                    lastChecked: null
+                });
+                toggleAddStudio();
+                updateStudiosView();
+            }
+        }
+
+        function updateStudio(studioId, updates) {
+            studios = studios.map(studio => 
+                studio.id === studioId ? { ...studio, ...updates } : studio
+            );
+            updateStudiosView();
+        }
+
+        function deleteStudio(studioId) {
+            studios = studios.filter(studio => studio.id !== studioId);
+            updateStudiosView();
+        }
+
+        function addEquipment(studioId) {
+            const name = document.getElementById(`new-equipment-${studioId}`).value.trim();
+            if (name) {
+                studios = studios.map(studio => 
+                    studio.id === studioId 
+                        ? { ...studio, equipment: [...studio.equipment, { 
+                            id: Date.now().toString(), 
+                            name: name, 
+                            status: 'not-checked' 
+                        }] }
+                        : studio
+                );
+                editingStates.addEquipment = null;
+                updateStudiosView();
+            }
+        }
+
+        function deleteEquipment(studioId, equipmentId) {
+            studios = studios.map(studio => 
+                studio.id === studioId 
+                    ? { ...studio, equipment: studio.equipment.filter(eq => eq.id !== equipmentId) }
+                    : studio
+            );
+            
+            if (selectedStudio?.id === studioId) {
+                editingEquipment = editingEquipment.filter(eq => eq.id !== equipmentId);
+            }
+            updateStudiosView();
+        }
+
+        function updateStudiosView() {
+            const container = document.getElementById('studios-grid');
+            container.innerHTML = studios.map(studio => {
+                const checkStatus = getCheckStatus(studio);
+                
+                return `
+                    <div class="card">
+                        <div class="card-header">
+                            ${editingStates.name === studio.id ? `
+                                <div class="inline-form">
+                                    <input id="edit-name-${studio.id}" class="input" value="${studio.name}" style="font-size: 1.25rem; font-weight: bold;">
+                                    <button class="button button-small" onclick="saveName('${studio.id}')">Save</button>
+                                </div>
+                            ` : `
+                                <div class="flex justify-between items-start">
+                                    <h3 class="card-title text-xl">${studio.name}</h3>
+                                    <button class="button-ghost" onclick="editingStates.name='${studio.id}'; updateStudiosView()">
+                                        ✏️
+                                    </button>
+                                </div>
+                            `}
+                            
+                            ${editingStates.description === studio.id ? `
+                                <div class="inline-form">
+                                    <input id="edit-desc-${studio.id}" class="input" value="${studio.description}" style="font-size: 0.875rem;">
+                                    <button class="button button-small" onclick="saveDescription('${studio.id}')">Save</button>
+                                </div>
+                            ` : `
+                                <div class="flex justify-between items-start">
+                                    <p class="text-sm text-gray-600">${studio.description}</p>
+                                    <button class="button-ghost" onclick="editingStates.description='${studio.id}'; updateStudiosView()">
+                                        ✏️
+                                    </button>
+                                </div>
+                            `}
+                        </div>
+                        <div class="card-content">
+                            <div class="space-y-3">
+                                <div class="text-sm text-gray-600">
+                                    ${studio.equipment.length} equipment items
+                                </div>
+                                <div class="text-sm">
+                                    <span class="font-medium">Check Interval: </span>
+                                    ${studio.checkInterval} days
+                                </div>
+                                <div class="text-sm">
+                                    <span class="font-medium">Last Checked: </span>
+                                    <span class="${checkStatus.color}">
+                                        ${checkStatus.status === 'never' ? 'Never' : `${checkStatus.days} days ago`}
+                                    </span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button class="button flex-1" onclick="showEquipmentView('${studio.id}')">
+                                        Check Equipment
+                                    </button>
+                                    <button class="button-ghost" onclick="editingStates.interval='${studio.id}'; updateStudiosView()" title="Edit Interval">
+                                        ⏰
+                                    </button>
+                                    <button class="button-ghost" onclick="editingStates.addEquipment='${studio.id}'; updateStudiosView()" title="Add Equipment">
+                                        ➕
+                                    </button>
+                                    <button class="button-ghost" onclick="deleteStudio('${studio.id}')" title="Delete Studio">
+                                        🗑️
+                                    </button>
+                                </div>
+                                
+                                ${editingStates.interval === studio.id ? `
+                                    <div class="inline-form">
+                                        <input id="edit-interval-${studio.id}" class="input" type="number" value="${studio.checkInterval}" min="1" max="365">
+                                        <button class="button button-small" onclick="saveInterval('${studio.id}')">Save</button>
+                                    </div>
+                                ` : ''}
+                                
+                                ${editingStates.addEquipment === studio.id ? `
+                                    <div class="inline-form">
+                                        <input id="new-equipment-${studio.id}" class="input flex-1" placeholder="Equipment name">
+                                        <button class="button button-small" onclick="addEquipment('${studio.id}')">Add</button>
+                                        <button class="button button-small button-outline" onclick="editingStates.addEquipment=null; updateStudiosView()">Cancel</button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function saveName(studioId) {
+            const newName = document.getElementById(`edit-name-${studioId}`).value.trim();
+            if (newName) {
+                updateStudio(studioId, { name: newName });
+            }
+            editingStates.name = null;
+        }
+
+        function saveDescription(studioId) {
+            const newDesc = document.getElementById(`edit-desc-${studioId}`).value.trim();
+            updateStudio(studioId, { description: newDesc });
+            editingStates.description = null;
+        }
+
+        function saveInterval(studioId) {
+            const newInterval = parseInt(document.getElementById(`edit-interval-${studioId}`).value) || 7;
+            updateStudio(studioId, { checkInterval: newInterval });
+            editingStates.interval = null;
+        }
+
+        // Equipment Check Functions
+        function updateEquipmentView() {
+            document.getElementById('equipment-studio-name').textContent = selectedStudio.name;
+            document.getElementById('equipment-studio-description').textContent = selectedStudio.description;
+            document.getElementById('equipment-check-info').textContent = 
+                `Update the status for all equipment. Next check due in ${selectedStudio.checkInterval} days.`;
+
+            const equipmentList = document.getElementById('equipment-list');
+            const noEquipment = document.getElementById('no-equipment');
+
+            if (editingEquipment.length === 0) {
+                equipmentList.innerHTML = '';
+                noEquipment.classList.remove('hidden');
+            } else {
+                noEquipment.classList.add('hidden');
+                equipmentList.innerHTML = editingEquipment.map(equipment => `
+                    <div class="p-4 rounded-lg border ${getStatusClass(equipment.status)}">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h3 class="font-semibold text-lg flex items-center gap-2">
+                                        ${getStatusIcon(equipment.status)}
+                                        ${equipment.name}
+                                    </h3>
+                                    <button class="button-ghost text-red-600" onclick="deleteEquipmentFromCheck('${equipment.id}')" title="Delete Equipment">
+                                        🗑️
+                                    </button>
+                                </div>
+                                <div class="radio-group">
+                                    <div class="radio-item">
+                                        <input type="radio" name="status-${equipment.id}" value="good" 
+                                               ${equipment.status === 'good' ? 'checked' : ''} 
+                                               onchange="updateEquipmentStatus('${equipment.id}', 'good')">
+                                        <label>Good</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" name="status-${equipment.id}" value="not-checked" 
+                                               ${equipment.status === 'not-checked' ? 'checked' : ''} 
+                                               onchange="updateEquipmentStatus('${equipment.id}', 'not-checked')">
+                                        <label>Not Checked</label>
+                                    </div>
+                                    <div class="radio-item">
+                                        <input type="radio" name="status-${equipment.id}" value="broken" 
+                                               ${equipment.status === 'broken' ? 'checked' : ''} 
+                                               onchange="updateEquipmentStatus('${equipment.id}', 'broken')">
+                                        <label>Broken</label>
+                                    </div>
+                                </div>
+                                ${equipment.status === 'broken' ? `
+                                    <div>
+                                        <label class="label">Issue Description</label>
+                                        <textarea class="textarea" rows="3" placeholder="Describe what's wrong with this equipment..." 
+                                                  onchange="updateEquipmentNotes('${equipment.id}', this.value)">${equipment.notes || ''}</textarea>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updateEquipmentStatus(equipmentId, status) {
+            editingEquipment = editingEquipment.map(eq => 
+                eq.id === equipmentId ? { ...eq, status: status } : eq
+            );
+            updateEquipmentView();
+        }
+
+        function updateEquipmentNotes(equipmentId, notes) {
+            editingEquipment = editingEquipment.map(eq => 
+                eq.id === equipmentId ? { ...eq, notes: notes } : eq
+            );
+        }
+
+        function deleteEquipmentFromCheck(equipmentId) {
+            editingEquipment = editingEquipment.filter(eq => eq.id !== equipmentId);
+            deleteEquipment(selectedStudio.id, equipmentId);
+            updateEquipmentView();
+        }
+
+        function saveEquipmentStatus() {
+            if (selectedStudio) {
+                studios = studios.map(studio => 
+                    studio.id === selectedStudio.id 
+                        ? { ...studio, equipment: editingEquipment, lastChecked: new Date().toISOString() }
+                        : studio
+                );
+                backToDashboard();
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            showDashboardView();
+        });
+    </script>
+</body>
+</html>
