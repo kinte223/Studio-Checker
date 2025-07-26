@@ -447,43 +447,7 @@
         };
 
         let studios = [
-            {
-                id: '1',
-                name: 'Studio A',
-                description: 'Main broadcast studio',
-                equipment: [
-                    { id: '1', name: 'Microphone 1', status: 'good' },
-                    { id: '2', name: 'Mixer Board', status: 'good' },
-                    { id: '3', name: 'Headphones', status: 'broken', notes: 'Left ear not working' }
-                ],
-                checkInterval: 7,
-                lastChecked: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-            },
-            {
-                id: '2',
-                name: 'Studio B',
-                description: 'Secondary studio for interviews',
-                equipment: [
-                    { id: '4', name: 'Microphone 2', status: 'not-checked' },
-                    { id: '5', name: 'Speakers', status: 'good' }
-                ],
-                checkInterval: 14,
-                lastChecked: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString()
-            },
-            {
-                id: '3',
-                name: 'Studio C',
-                description: 'Recording studio',
-                equipment: [
-                    { id: '6', name: 'Microphone 3', status: 'broken', notes: 'No sound output' },
-                    { id: '7', name: 'Audio Interface', status: 'good' },
-                    { id: '8', name: 'Monitor Speakers', status: 'not-checked' }
-                ],
-                checkInterval: 7,
-                lastChecked: null
-            }
-        ];
-
+           
         // Utility Functions
         function getDaysSinceLastCheck(lastChecked) {
             if (!lastChecked) return null;
